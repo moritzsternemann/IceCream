@@ -7,6 +7,7 @@
 
 import Foundation
 import CloudKit
+import Realm
 import RealmSwift
 
 public protocol CKRecordConvertible {
@@ -99,6 +100,22 @@ extension CKRecordConvertible where Self: Object {
                     guard let list = item as? List<Date>, !list.isEmpty else { break }
                     let array = Array(list)
                     r[prop.name] = array as CKRecordValue
+                case .object:
+                    if let list = item as? List<CreamAsset>, !list.isEmpty {
+                        let array = Array(list)
+                        r[prop.name] = array.map { $0.asset }
+                    } else if let list = item as? RLMArray<Object> {
+                        var array: [CKRecord.Reference] = []
+                        for index in 0..<list.count {
+                            let object = list[index]
+                            guard let primaryKey = object.objectSchema.primaryKeyProperty?.name,
+                                let id = object.value(forKey: primaryKey) as? String
+                                else  { break }
+                            array.append(CKRecord.Reference(recordID: CKRecord.ID(recordName: id), action: .none))
+                        }
+                        r[prop.name] = array
+                    }
+                    break
                 default:
                     break
                     /// Other inner types of List is not supported yet
