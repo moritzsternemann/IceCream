@@ -17,6 +17,19 @@ extension CKRecordRecoverable where Self: Object {
         let o = Self()
         for prop in o.objectSchema.properties {
             var recordValue: Any?
+
+            if prop == o.objectSchema.primaryKeyProperty {
+                switch prop.type {
+                case .int:
+                    recordValue = Int(record.recordID.recordName)
+                case .string:
+                    recordValue = record.recordID.recordName
+                default:
+                    fatalError("primaryKey type has to be int or string")
+                }
+                o.setValue(recordValue, forKey: prop.name)
+                continue
+            }
             
             if prop.isArray {
                 switch prop.type {
