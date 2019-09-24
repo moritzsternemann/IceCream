@@ -6,6 +6,7 @@
 //
 
 import CloudKit
+import Realm
 import RealmSwift
 
 public protocol CKRecordRecoverable {
@@ -50,6 +51,22 @@ extension CKRecordRecoverable where Self: Object {
                     let list = List<Data>()
                     list.append(objectsIn: value)
                     recordValue = list
+                case .object:
+                    if let assets = record.value(forKey: prop.name) as? [CKAsset] {
+                        let list = List<CreamAsset>()
+                        list.append(objectsIn: assets.compactMap { asset in
+                            CreamAsset.parse(from: prop.name, record: record, asset: asset)
+                        })
+                        recordValue = list
+                    } else if let owners = record.value(forKey: prop.name) as? [CKRecord.Reference], let ownerType = prop.objectClassName {
+                        let list = RLMArray<Object>(objectClassName: ownerType)
+                        owners
+                            .compactMap { owner in
+                                realm.dynamicObject(ofType: ownerType, forPrimaryKey: primaryKeyForRecordID(recordID: owner.recordID))
+                            }
+                            .forEach(list.add)
+                        recordValue = list
+                    }
                 default:
                     break
                 }
