@@ -104,6 +104,9 @@ extension CKRecordConvertible where Self: Object {
                     if let list = item as? List<CreamAsset>, !list.isEmpty {
                         let array = Array(list)
                         r[prop.name] = array.map { $0.asset }
+                    } else if let list = item as? List<CreamLocation>, !list.isEmpty {
+                        let array = Array(list)
+                        r[prop.name] = array.map { $0.location }
                     } else if let list = item as? RLMArray<Object> {
                         var array: [CKRecord.Reference] = []
                         for index in 0..<list.count {
@@ -131,6 +134,8 @@ extension CKRecordConvertible where Self: Object {
                 // If object is CreamAsset, set record with its wrapped CKAsset value
                 if objectName == CreamAsset.className(), let creamAsset = item as? CreamAsset {
                     r[prop.name] = creamAsset.asset
+                } else if objectName == CreamLocation.className(), let creamLocation = item as? CreamLocation {
+                    r[prop.name] = creamLocation.location
                 } else if let owner = item as? CKRecordConvertible {
                     // Handle to-one relationship: https://realm.io/docs/swift/latest/#many-to-one
                     // So the owner Object has to conform to CKRecordConvertible protocol
